@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ShepherdNet - Land Feed</title>
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#F2A20C">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            shepherdDark: '#0F172A',
+            shepherdCard: '#1E293B',
+            shepherdGold: '#F2A20C',
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    html { transition: background-color 0.3s ease, color 0.3s ease; }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-900 dark:bg-shepherdDark dark:text-white min-h-screen pb-24 md:pb-8 font-sans transition-colors">
+
+  <div id="loginModal" class="fixed inset-0 z-[100] bg-shepherdDark/90 backdrop-blur-md flex items-center justify-center p-4 hidden">
+    <div class="bg-white dark:bg-shepherdCard w-full max-w-md p-8 rounded-2xl shadow-2xl border border-gray-200 dark:border-slate-700">
+      <div class="text-center mb-8">
+        <h2 class="text-3xl font-bold text-shepherdGold">Land Survey</h2>
+        <p class="text-gray-500 dark:text-gray-400 mt-2">Sign in to access the land feed</p>
+      </div>
+      
+      <form id="loginForm" class="flex flex-col gap-5">
+        <div class="flex flex-col gap-1">
+          <label class="text-sm font-bold text-gray-700 dark:text-slate-300">Email Address</label>
+          <input type="email" id="loginEmail" required placeholder="admin@example.com" class="px-4 py-3 rounded-xl bg-gray-50 dark:bg-shepherdDark border border-gray-300 dark:border-slate-600 focus:outline-none focus:ring-2 focus:ring-shepherdGold transition-colors text-slate-900 dark:text-white">
+        </div>
+        
+        <div class="flex flex-col gap-1">
+          <label class="text-sm font-bold text-gray-700 dark:text-slate-300">Password</label>
+          <input type="password" id="loginPassword" required placeholder="••••••••" class="px-4 py-3 rounded-xl bg-gray-50 dark:bg-shepherdDark border border-gray-300 dark:border-slate-600 focus:outline-none focus:ring-2 focus:ring-shepherdGold transition-colors text-slate-900 dark:text-white">
+        </div>
+
+        <button type="submit" id="loginSubmitBtn" class="mt-2 w-full bg-shepherdGold text-shepherdDark font-extrabold text-lg py-4 rounded-xl shadow-lg hover:bg-yellow-500 transition-all active:scale-95">
+          Login to Dashboard
+        </button>
+        
+        <p id="loginErrorMsg" class="text-red-500 text-center text-sm font-medium hidden">Invalid email or password.</p>
+      </form>
+    </div>
+  </div>
+
+  <nav class="p-4 bg-white dark:bg-shepherdCard shadow-md sticky top-0 z-50 flex justify-between items-center border-b border-gray-200 dark:border-slate-700 transition-colors">
+    <div class="flex gap-4 items-center">
+      <a href="index.html" class="text-2xl font-bold text-shepherdGold tracking-tight">Land Survey</a>
+      <div class="hidden md:flex gap-6 ml-8 font-medium">
+        <a href="index.html" class="text-shepherdGold transition-colors">Feed</a>
+        <a href="survey.html" class="hover:text-shepherdGold transition-colors">Submit Survey</a>
+        <a href="admin.html" class="hover:text-shepherdGold transition-colors">Admin</a>
+      </div>
+    </div>
+    <button id="themeToggleBtn" class="flex items-center justify-center px-4 py-2 rounded-full font-bold text-sm bg-gray-200 dark:bg-slate-700 hover:bg-gray-300 dark:hover:bg-slate-600 transition-colors">
+      ☀️ Light
+    </button>
+  </nav>
+
+  <main class="p-4 max-w-5xl mx-auto mt-6 w-full transition-opacity duration-500">
+    <div class="mb-6 flex justify-between items-end">
+      <div>
+        <h1 class="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">Recent Surveys</h1>
+        <p class="text-gray-500 dark:text-slate-300 text-sm mt-1">Browse the latest collected land data.</p>
+      </div>
+      <div id="listingCount" class="text-sm font-bold bg-shepherdGold/10 text-shepherdGold px-3 py-1.5 rounded-full border border-shepherdGold/20">
+        0 Listings
+      </div>
+    </div>
+
+    <div id="loadingState" class="flex flex-col items-center justify-center py-20 gap-4">
+        <div class="w-10 h-10 border-4 border-shepherdGold border-t-transparent rounded-full animate-spin"></div>
+        <p class="text-gray-500 dark:text-gray-400 font-medium">Fetching land data...</p>
+    </div>
+
+    <div id="feedContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    </div>
+  </main>
+
+  <div class="md:hidden flex justify-around items-center p-4 bg-white dark:bg-shepherdCard fixed bottom-0 w-full shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)] border-t border-gray-200 dark:border-slate-700 z-50 transition-colors">
+    <a href="index.html" class="text-sm font-bold flex flex-col items-center text-shepherdGold transition-colors"><span>🗺️</span> Feed</a>
+    <a href="survey.html" class="text-sm font-bold flex flex-col items-center text-gray-500 dark:text-gray-400 hover:text-shepherdGold transition-colors"><span>📝</span> Survey</a>
+    <a href="admin.html" class="text-sm font-bold flex flex-col items-center text-gray-500 dark:text-gray-400 hover:text-shepherdGold transition-colors"><span>⚙️</span> Admin</a>
+  </div>
+
+  <script>
+    const htmlElement = document.documentElement;
+    const themeBtn = document.getElementById('themeToggleBtn');
+    let isDarkMode = localStorage.getItem('theme') !== 'light';
+    
+    function updateThemeUI() {
+      if (isDarkMode) {
+        htmlElement.classList.add('dark');
+        themeBtn.textContent = '☀️ Light';
+      } else {
+        htmlElement.classList.remove('dark');
+        themeBtn.textContent = '🌙 Dark';
+      }
+    }
+    updateThemeUI();
+    themeBtn.addEventListener('click', () => {
+      isDarkMode = !isDarkMode;
+      localStorage.setItem('theme', isDarkMode ? 'dark' : 'light');
+      updateThemeUI();
+    });
+
+    const WORKER_URL = 'https://lucky-water-ff71.jewelsinthepalace2.workers.dev'; 
+
+    const feedContainer = document.getElementById('feedContainer');
+    const loadingState = document.getElementById('loadingState');
+    const listingCount = document.getElementById('listingCount');
+    const loginModal = document.getElementById('loginModal');
+    const loginForm = document.getElementById('loginForm');
+    const loginErrorMsg = document.getElementById('loginErrorMsg');
+
+    function checkAuth() {
+      const userToken = localStorage.getItem('user_token');
+      if (!userToken) {
+        loginModal.classList.remove('hidden');
+        document.querySelector('main').classList.add('opacity-0');
+      } else {
+        loginModal.classList.add('hidden');
+        document.querySelector('main').classList.remove('opacity-0');
+        fetchLands(); 
+      }
+    }
+
+    loginForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const email = document.getElementById('loginEmail').value;
+      const password = document.getElementById('loginPassword').value;
+      const submitBtn = document.getElementById('loginSubmitBtn');
+
+      submitBtn.textContent = 'Verifying...';
+      submitBtn.disabled = true;
+      loginErrorMsg.classList.add('hidden');
+
+      try {
+        const response = await fetch(`${WORKER_URL}/api/login`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password })
+        });
+        const result = await response.json();
+
+        if (response.ok) {
+          localStorage.setItem('user_token', result.token);
+          localStorage.setItem('user_data', JSON.stringify(result.user));
+          checkAuth();
+        } else {
+          throw new Error(result.error || 'Login failed');
+        }
+      } catch (err) {
+        loginErrorMsg.textContent = err.message;
+        loginErrorMsg.classList.remove('hidden');
+      } finally {
+        submitBtn.textContent = 'Login to Dashboard';
+        submitBtn.disabled = false;
+      }
+    });
+
+    async function fetchLands() {
+      const token = localStorage.getItem('user_token');
+      loadingState.classList.remove('hidden');
+      feedContainer.innerHTML = '';
+
+      try {
+        const response = await fetch(`${WORKER_URL}/api/lands`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const lands = await response.json();
+
+        loadingState.classList.add('hidden');
+        listingCount.textContent = `${lands.length} Listings`;
+
+        if (lands.length === 0) {
+          feedContainer.innerHTML = `<p class="col-span-full text-center py-10 text-gray-500">No surveys found yet.</p>`;
+          return;
+        }
+
+        lands.forEach(land => {
+          
+          let displayMediaHTML = `<img src="https://images.unsplash.com/photo-1500382017468-9049fed747ef?q=80&w=800&auto=format&fit=crop" alt="Land fallback" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">`; // Default fallback
+
+          try {
+            let hasImage = false;
+            
+            // 1. Try to load an image first
+            if (land.images) {
+              const imgArray = JSON.parse(land.images);
+              if (imgArray && imgArray.length > 0) {
+                displayMediaHTML = `<img src="${imgArray[0]}" alt="Land" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">`;
+                hasImage = true;
+              }
+            }
+
+            // --- NEW ADDITION: 2. If no image, try to load a video as the thumbnail ---
+            if (!hasImage && land.videos) {
+              const vidArray = JSON.parse(land.videos);
+              if (vidArray && vidArray.length > 0) {
+                // Renders a muted video paused at 0.5s to act as a thumbnail
+                displayMediaHTML = `
+                  <video class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" preload="metadata" muted>
+                     <source src="${vidArray[0]}#t=0.5" type="video/mp4">
+                  </video>
+                  <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
+                     <div class="bg-black/50 text-white rounded-full p-3 backdrop-blur-sm shadow-lg">
+                        ▶️
+                     </div>
+                  </div>
+                `;
+              }
+            }
+            // --------------------------------------------------------------------------
+
+          } catch (e) {
+            console.error("Could not parse media for thumbnail:", e);
+          }
+
+          const cardHTML = `
+            <div class="bg-white dark:bg-shepherdCard rounded-xl overflow-hidden shadow-md dark:shadow-lg border border-gray-200 dark:border-slate-700/50 flex flex-col transition-colors duration-300 relative group">
+              <a href="detail.html?id=${land.id}" class="block relative cursor-pointer">
+                <div class="h-48 w-full bg-gray-200 dark:bg-slate-800 relative overflow-hidden">
+                  
+                  ${displayMediaHTML}
+
+                  <div class="absolute top-3 left-3 bg-white/90 dark:bg-shepherdDark/80 backdrop-blur-sm text-gray-900 dark:text-slate-200 text-xs px-3 py-1.5 rounded-full flex items-center gap-1 font-bold shadow-sm">
+                    <span>👤</span> ${land.surveyorName || 'Unknown Surveyor'}
+                  </div>
+                </div>
+                <div class="p-4 flex flex-col gap-2">
+                  <div class="flex justify-between items-center">
+                    <span class="text-shepherdGold font-extrabold text-xl">GH₵ ${Number(land.price).toLocaleString()}</span>
+                    <span class="text-gray-600 dark:text-white text-sm font-bold bg-gray-100 dark:bg-slate-700 px-2 py-1 rounded-md">${land.land_size || land.size}</span>
+                  </div>
+                  <p class="text-gray-500 dark:text-slate-300 text-sm mt-1 flex items-center gap-1">
+                    📍 <span class="font-bold text-gray-800 dark:text-gray-100">${land.landmark}</span> 
+                  </p>
+                </div>
+              </a>
+              <div class="px-4 pb-4 mt-auto">
+                <a href="tel:${land.caretaker_contact || land.caretakerContact}" class="flex justify-center items-center w-full bg-shepherdGold text-shepherdDark font-bold py-2.5 rounded-lg hover:bg-yellow-500 transition-colors shadow-sm">
+                  📞 Call Caretaker
+                </a>
+              </div>
+            </div>
+          `;
+          feedContainer.insertAdjacentHTML('beforeend', cardHTML);
+        });
+      } catch (error) {
+        console.error("Error fetching data:", error);
+        loadingState.innerHTML = `<p class="text-red-500 font-bold">Failed to load surveys. Check Worker URL.</p>`;
+      }
+    }
+
+    // Initial check
+    checkAuth();
+  </script>
+</body>
+</html>

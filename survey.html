@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Land Survey - Survey Form</title>
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#F2A20C">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            shepherdDark: '#0F172A',
+            shepherdCard: '#1E293B',
+            shepherdGold: '#F2A20C',
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    html { transition: background-color 0.3s ease, color 0.3s ease; }
+    input[type="file"]::file-selector-button { display: none; }
+    /* Style for video thumbnails */
+    .video-hint { position: absolute; bottom: 4px; right: 4px; background: rgba(0,0,0,0.6); color: white; padding: 2px 4px; border-radius: 4px; font-size: 10px; pointer-events: none; }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-900 dark:bg-shepherdDark dark:text-white min-h-screen pb-24 md:pb-8 font-sans transition-colors">
+
+  <div id="toastContainer" class="fixed top-4 left-1/2 transform -translate-x-1/2 z-[9999] flex flex-col gap-2 w-full max-w-sm px-4 pointer-events-none"></div>
+
+  <nav class="p-4 bg-white dark:bg-shepherdCard shadow-md sticky top-0 z-50 flex justify-between items-center border-b border-gray-200 dark:border-slate-700 transition-colors">
+    <div class="flex gap-4 items-center">
+      <a href="index.html" class="text-2xl font-bold text-shepherdGold tracking-tight">Land Survey</a>
+      <div class="hidden md:flex gap-6 ml-8 font-medium">
+        <a href="index.html" class="hover:text-shepherdGold transition-colors">Feed</a>
+        <a href="survey.html" class="text-shepherdGold transition-colors">Submit Survey</a>
+        <a href="admin.html" class="hover:text-shepherdGold transition-colors">Admin</a>
+      </div>
+    </div>
+    <button id="themeToggleBtn" class="flex items-center justify-center px-4 py-2 rounded-full font-bold text-sm bg-gray-200 dark:bg-slate-700 hover:bg-gray-300 dark:hover:bg-slate-600 transition-colors">
+      ☀️ Light
+    </button>
+  </nav>
+
+  <main class="p-4 max-w-2xl mx-auto mt-6 w-full">
+    <div class="mb-6">
+      <h1 class="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">New Land Survey</h1>
+      <p class="text-gray-500 dark:text-slate-300 text-sm mt-1">Collect accurate field data and upload media.</p>
+    </div>
+
+    <form id="surveyForm" class="bg-white dark:bg-shepherdCard p-6 rounded-2xl shadow-md border border-gray-200 dark:border-slate-700 flex flex-col gap-6 transition-colors">
+      
+      <div class="flex flex-col gap-2">
+        <label class="text-sm font-bold text-gray-700 dark:text-slate-300">1. Exact Location (GPS)</label>
+        <button type="button" id="locationBtn" class="px-4 py-3 rounded-lg font-bold transition-all flex justify-center items-center shadow-sm bg-shepherdGold text-shepherdDark hover:bg-yellow-500">
+          📍 Auto-Detect Location
+        </button>
+        <p id="locationDisplay" class="text-xs text-gray-500 dark:text-gray-400 mt-1 hidden"></p>
+        <p id="locationError" class="text-red-500 text-sm font-medium hidden"></p>
+        <input type="hidden" id="latitude" name="latitude">
+        <input type="hidden" id="longitude" name="longitude">
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="flex flex-col gap-1">
+          <label class="text-sm font-bold text-gray-700 dark:text-slate-300">2. Landmark</label>
+          <input type="text" id="landmark" name="landmark" required placeholder="e.g., Behind Total Station" class="px-4 py-3 rounded-lg bg-gray-50 dark:bg-shepherdDark border border-gray-300 dark:border-slate-600 focus:outline-none focus:ring-2 focus:ring-shepherdGold transition-colors text-slate-900 dark:text-white">
+        </div>
+
+        <div class="flex flex-col gap-1">
+          <label class="text-sm font-bold text-gray-700 dark:text-slate-300">3. Land Size</label>
+          <input type="text" id="size" name="size" required placeholder="e.g., 70x100 ft or 2 Acres" class="px-4 py-3 rounded-lg bg-gray-50 dark:bg-shepherdDark border border-gray-300 dark:border-slate-600 focus:outline-none focus:ring-2 focus:ring-shepherdGold transition-colors text-slate-900 dark:text-white">
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="flex flex-col gap-1">
+          <label class="text-sm font-bold text-gray-700 dark:text-slate-300">4. Price (GH₵)</label>
+          <input type="number" id="price" name="price" required placeholder="e.g., 150000" class="px-4 py-3 rounded-lg bg-gray-50 dark:bg-shepherdDark border border-gray-300 dark:border-slate-600 focus:outline-none focus:ring-2 focus:ring-shepherdGold transition-colors text-slate-900 dark:text-white">
+        </div>
+
+        <div class="flex flex-col gap-1">
+          <label class="text-sm font-bold text-gray-700 dark:text-slate-300">5. Owner/Caretaker Contact</label>
+          <input type="tel" id="contact" name="caretakerContact" required placeholder="054... or +233..." class="px-4 py-3 rounded-lg bg-gray-50 dark:bg-shepherdDark border border-gray-300 dark:border-slate-600 focus:outline-none focus:ring-2 focus:ring-shepherdGold transition-colors text-slate-900 dark:text-white">
+          <p id="contactError" class="text-red-500 text-xs mt-1 hidden">Invalid Ghana number format.</p>
+        </div>
+      </div>
+
+      <div class="flex flex-col gap-2">
+        <label class="text-sm font-bold text-gray-700 dark:text-slate-300">6. Upload Photos & Videos</label>
+        <div class="flex items-center justify-center w-full">
+          <label class="flex flex-col items-center justify-center w-full h-32 border-2 border-gray-300 dark:border-slate-600 border-dashed rounded-lg cursor-pointer bg-gray-50 dark:bg-shepherdDark hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors">
+            <div class="flex flex-col items-center justify-center pt-5 pb-6">
+              <span class="text-2xl mb-2">📸 🎥</span>
+              <p class="mb-2 text-sm text-gray-500 dark:text-gray-400"><span class="font-semibold text-shepherdGold">Add Media</span> (Images or Videos)</p>
+            </div>
+            <input type="file" id="mediaInput" class="hidden" multiple accept="image/*,video/*">
+          </label>
+        </div>
+        <div id="mediaPreviews" class="grid grid-cols-3 sm:grid-cols-4 gap-3 mt-3 empty:hidden"></div>
+      </div>
+
+      <button type="submit" id="submitBtn" class="mt-4 w-full bg-shepherdGold text-shepherdDark font-extrabold text-lg py-4 rounded-xl shadow-lg hover:bg-yellow-500 transition-all duration-200 disabled:opacity-50">
+        Submit Survey
+      </button>
+
+      <div id="progressContainer" class="hidden flex flex-col gap-2 w-full mt-2">
+        <div class="flex justify-between text-sm font-bold text-gray-700 dark:text-slate-300">
+          <span id="progressText">Uploading media...</span>
+          <span id="progressPercent">0%</span>
+        </div>
+        <div class="w-full bg-gray-200 dark:bg-slate-700 rounded-full h-2.5 overflow-hidden shadow-inner">
+          <div id="progressBar" class="bg-shepherdGold h-2.5 rounded-full" style="width: 0%; transition: width 0.3s ease, background-color 0.3s ease;"></div>
+        </div>
+      </div>
+
+    </form>
+  </main>
+
+  <div class="md:hidden flex justify-around items-center p-4 bg-white dark:bg-shepherdCard fixed bottom-0 w-full shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)] border-t border-gray-200 dark:border-slate-700 z-50 transition-colors">
+    <a href="index.html" class="text-sm font-bold flex flex-col items-center text-gray-500 dark:text-gray-400 hover:text-shepherdGold transition-colors"><span>🗺️</span> Feed</a>
+    <a href="survey.html" class="text-sm font-bold flex flex-col items-center text-shepherdGold transition-colors"><span>📝</span> Survey</a>
+    <a href="admin.html" class="text-sm font-bold flex flex-col items-center text-gray-500 dark:text-gray-400 hover:text-shepherdGold transition-colors"><span>⚙️</span> Admin</a>
+  </div>
+
+  <script>
+    // --- NEW ADDITION: Toast Logic ---
+    function showToast(message, type = 'error') {
+      const container = document.getElementById('toastContainer');
+      const toast = document.createElement('div');
+      const bgColor = type === 'success' ? 'bg-emerald-500' : 'bg-red-500';
+      
+      toast.className = `${bgColor} text-white px-5 py-3 rounded-xl shadow-lg transform transition-all duration-300 -translate-y-full opacity-0 flex items-center gap-3 font-bold text-sm pointer-events-auto`;
+      toast.innerHTML = `<span>${type === 'success' ? '✅' : '⚠️'}</span><span>${message}</span>`;
+      
+      container.appendChild(toast);
+
+      // Slide in
+      setTimeout(() => {
+        toast.classList.remove('-translate-y-full', 'opacity-0');
+        toast.classList.add('translate-y-0', 'opacity-100');
+      }, 10);
+
+      // Slide out and remove
+      setTimeout(() => {
+        toast.classList.remove('translate-y-0', 'opacity-100');
+        toast.classList.add('-translate-y-full', 'opacity-0');
+        setTimeout(() => toast.remove(), 300);
+      }, 4000);
+    }
+    // ----------------------------------
+
+    const htmlElement = document.documentElement;
+    const themeBtn = document.getElementById('themeToggleBtn');
+    let isDarkMode = localStorage.getItem('theme') !== 'light';
+    updateThemeUI();
+
+    themeBtn.addEventListener('click', () => {
+      isDarkMode = !isDarkMode;
+      localStorage.setItem('theme', isDarkMode ? 'dark' : 'light');
+      updateThemeUI();
+    });
+
+    function updateThemeUI() {
+      if (isDarkMode) {
+        htmlElement.classList.add('dark');
+        themeBtn.textContent = '☀️ Light';
+      } else {
+        htmlElement.classList.remove('dark');
+        themeBtn.textContent = '🌙 Dark';
+      }
+    }
+
+    const WORKER_URL = 'https://lucky-water-ff71.jewelsinthepalace2.workers.dev'; 
+
+    const locationBtn = document.getElementById('locationBtn');
+    const locationDisplay = document.getElementById('locationDisplay');
+    const locationError = document.getElementById('locationError');
+    const latInput = document.getElementById('latitude');
+    const lngInput = document.getElementById('longitude');
+
+    locationBtn.addEventListener('click', () => {
+      locationBtn.textContent = '📡 Acquiring GPS Signal...';
+      locationBtn.classList.add('opacity-75');
+      if ("geolocation" in navigator) {
+        navigator.geolocation.getCurrentPosition(
+          (position) => {
+            latInput.value = position.coords.latitude;
+            lngInput.value = position.coords.longitude;
+            locationBtn.textContent = '✅ Coordinates Captured';
+            locationBtn.className = 'px-4 py-3 rounded-lg font-bold bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800 w-full pointer-events-none';
+            locationDisplay.textContent = `Lat: ${latInput.value}, Lng: ${lngInput.value}`;
+            locationDisplay.classList.remove('hidden');
+          },
+          (err) => {
+            locationError.textContent = "Location failed. Check device permissions.";
+            locationError.classList.remove('hidden');
+            locationBtn.textContent = '📍 Auto-Detect Location';
+            locationBtn.classList.remove('opacity-75');
+          },
+          { enableHighAccuracy: true, timeout: 15000 }
+        );
+      }
+    });
+
+    const contactInput = document.getElementById('contact');
+    const contactError = document.getElementById('contactError');
+    const submitBtn = document.getElementById('submitBtn');
+    const ghPhoneRegex = /^(\+233|0)[2345][0-9]{8}$/;
+
+    contactInput.addEventListener('input', (e) => {
+      const isValid = ghPhoneRegex.test(e.target.value);
+      contactError.classList.toggle('hidden', isValid || e.target.value === '');
+      contactInput.classList.toggle('border-red-500', !isValid && e.target.value !== '');
+      submitBtn.disabled = !isValid && e.target.value !== '';
+    });
+
+    const mediaInput = document.getElementById('mediaInput');
+    const mediaPreviews = document.getElementById('mediaPreviews');
+    let selectedFiles = [];
+
+    mediaInput.addEventListener('change', (e) => {
+      Array.from(e.target.files).forEach((file) => {
+        selectedFiles.push(file);
+        const div = document.createElement('div');
+        div.className = 'relative group rounded-md overflow-hidden h-20 bg-gray-200 dark:bg-slate-800';
+        
+        const isVideo = file.type.startsWith('video/');
+        
+        if (isVideo) {
+          div.innerHTML = `
+            <video class="w-full h-full object-cover muted" preload="metadata">
+               <source src="${URL.createObjectURL(file)}#t=0.5" type="${file.type}">
+            </video>
+            <span class="video-hint">VIDEO</span>
+            <button type="button" class="absolute top-1 right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 remove-btn">×</button>
+          `;
+        } else {
+          div.innerHTML = `
+            <img src="${URL.createObjectURL(file)}" class="w-full h-full object-cover">
+            <button type="button" class="absolute top-1 right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 remove-btn">×</button>
+          `;
+        }
+
+        div.querySelector('.remove-btn').onclick = () => {
+          div.remove();
+          selectedFiles = selectedFiles.filter(f => f !== file);
+        };
+        mediaPreviews.appendChild(div);
+      });
+      mediaInput.value = '';
+    });
+
+    const progressContainer = document.getElementById('progressContainer');
+    const progressBar = document.getElementById('progressBar');
+    const progressPercent = document.getElementById('progressPercent');
+    const progressText = document.getElementById('progressText');
+
+    const surveyForm = document.getElementById('surveyForm');
+
+    surveyForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      if (!latInput.value) {
+        showToast("Please capture GPS coordinates first.", "error"); // CHANGED FROM ALERT
+        return;
+      }
+
+      submitBtn.textContent = 'Processing...';
+      submitBtn.disabled = true;
+
+      const userDataStr = localStorage.getItem('user_data');
+      const userName = userDataStr ? JSON.parse(userDataStr).name.split(' ')[0] : 'there';
+
+      progressContainer.classList.remove('hidden');
+      progressBar.style.width = '0%';
+      progressBar.className = 'bg-shepherdGold h-2.5 rounded-full'; 
+      progressPercent.textContent = '0%';
+      progressText.textContent = 'Syncing media to cloud...';
+
+      let simulatedProgress = 0;
+      const progressInterval = setInterval(() => {
+        let increment = 0;
+        if (simulatedProgress < 40) increment = Math.random() * 10;
+        else if (simulatedProgress < 75) increment = Math.random() * 4;
+        else if (simulatedProgress < 95) increment = Math.random() * 1.5;
+
+        simulatedProgress += increment;
+        if (simulatedProgress > 95) simulatedProgress = 95; 
+
+        const displayValue = Math.floor(simulatedProgress);
+        progressBar.style.width = `${displayValue}%`;
+        progressPercent.textContent = `${displayValue}%`;
+
+        if (displayValue < 40) {
+          progressText.textContent = 'Syncing media to cloud...';
+        } else if (displayValue < 75) {
+          progressText.textContent = 'Hang on tight...';
+        } else if (displayValue < 95) {
+          progressText.textContent = 'Almost there...';
+        } else {
+          progressText.textContent = `Just a little patience, ${userName}...`;
+        }
+
+      }, 300);
+
+      const formData = new FormData(surveyForm);
+      
+      let imgCount = 0;
+      let vidCount = 0;
+
+      selectedFiles.forEach((file) => {
+        if (file.type.startsWith('image/')) {
+          formData.append(`image_${imgCount}`, file);
+          imgCount++;
+        } else if (file.type.startsWith('video/')) {
+          formData.append(`video_${vidCount}`, file);
+          vidCount++;
+        }
+      });
+
+      const token = localStorage.getItem('user_token') || 'test-token';
+
+      try {
+        const response = await fetch(`${WORKER_URL}/api/survey`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`
+          },
+          body: formData
+        });
+
+        clearInterval(progressInterval);
+
+        if (response.ok) {
+          progressBar.style.width = '100%';
+          progressPercent.textContent = '100%';
+          progressBar.classList.replace('bg-shepherdGold', 'bg-green-500'); 
+          progressText.textContent = 'Upload Complete! Finalizing...';
+
+          showToast("Survey Submitted Successfully!", "success"); // CHANGED FROM ALERT
+
+          setTimeout(() => {
+            window.location.href = 'index.html';
+          }, 1500); // Increased slightly so they have time to see the toast before redirect
+
+        } else {
+          const err = await response.json();
+          throw new Error(err.error || "Submission failed");
+        }
+      } catch (err) {
+        clearInterval(progressInterval);
+        progressBar.classList.replace('bg-shepherdGold', 'bg-red-500'); 
+        progressText.textContent = 'Upload Failed';
+        
+        showToast("Error: " + err.message, "error"); // CHANGED FROM ALERT
+        
+        submitBtn.textContent = 'Submit Survey';
+        submitBtn.disabled = false;
+        
+        setTimeout(() => {
+           progressContainer.classList.add('hidden');
+        }, 3000);
+      }
+    });
+  </script>
+</body>
+</html>

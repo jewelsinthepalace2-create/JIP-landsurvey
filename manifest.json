@@ -1,0 +1,24 @@
+{
+  "short_name": "Land Survey",
+  "name": "ShepherdNet Land Systems",
+  "description": "Professional Land Survey and Team Management System",
+  "icons": [
+    {
+      "src": "https://firebasestorage.googleapis.com/v0/b/mealone-29b00.firebasestorage.app/o/Jewels%20background%20removed.png?alt=media&token=abdf1eaa-7a57-41a9-8787-f39dec45bb13",
+      "type": "image/png",
+      "sizes": "192x192",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "https://firebasestorage.googleapis.com/v0/b/mealone-29b00.firebasestorage.app/o/Jewels%20background%20removed.png?alt=media&token=abdf1eaa-7a57-41a9-8787-f39dec45bb13",
+      "type": "image/png",
+      "sizes": "512x512"
+    }
+  ],
+  "start_url": "/index.html",
+  "background_color": "#0F172A",
+  "display": "standalone",
+  "scope": "/",
+  "theme_color": "#F2A20C",
+  "orientation": "portrait"
+}
