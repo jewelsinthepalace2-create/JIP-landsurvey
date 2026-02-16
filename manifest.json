@@ -1,6 +1,6 @@
 {
   "short_name": "Land Survey",
-  "name": "ShepherdNet Land Systems",
+  "name": "JIP Land Survey",
   "description": "Professional Land Survey and Team Management System",
   "icons": [
     {
@@ -21,4 +21,5 @@
   "scope": "/",
   "theme_color": "#F2A20C",
   "orientation": "portrait"
+
 }
